@@ -1,2 +1,2 @@
-# NerualRetail
+# NeuralRetail
 AI Sales Forecasting System
