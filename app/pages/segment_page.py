@@ -30,11 +30,14 @@ segmentation_data_path = os.path.join(
     BASE_DIR,
     "data",
     "processed",
-    "customer_segmentation.csv"
+    "cleaned_online_retail.csv.gz"
 )
 
 # ---------------- LOAD DATA ----------------
-df = pd.read_csv(segmentation_data_path)
+df = pd.read_csv(
+    segmentation_data_path,
+    compression='gzip'
+)
 
 # ---------------- OVERVIEW ----------------
 st.subheader("📊 Segmentation Overview")
@@ -67,7 +70,7 @@ st.subheader("📋 Customer Segmentation Data")
 
 st.dataframe(
     df.head(20),
-    width='stretch'
+    use_container_width=True
 )
 
 # ---------------- CLUSTER DISTRIBUTION ----------------
@@ -90,6 +93,7 @@ if 'Cluster' in df.columns:
 
     ax1.set_xlabel("Cluster")
     ax1.set_ylabel("Number of Customers")
+    ax1.set_title("Cluster Distribution")
 
     st.pyplot(fig1)
 
@@ -112,6 +116,7 @@ if (
 
     ax2.set_xlabel("Annual Income")
     ax2.set_ylabel("Spending Score")
+    ax2.set_title("Customer Segments")
 
     st.pyplot(fig2)
 
@@ -126,7 +131,7 @@ if 'Cluster' in df.columns:
 
     st.dataframe(
         cluster_summary,
-        width='stretch'
+        use_container_width=True
     )
 
 # ---------------- DOWNLOAD BUTTON ----------------
@@ -140,4 +145,4 @@ st.download_button(
 )
 
 # ---------------- SUCCESS MESSAGE ----------------
-st.success("Customer Segmentation Dashboard Loaded Successfully!")
+st.success("✅ Customer Segmentation Dashboard Loaded Successfully!")
