@@ -1,5 +1,3 @@
-from turtle import color
-from webbrowser import BackgroundBrowser
 
 import streamlit as st
 
