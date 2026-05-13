@@ -1,0 +1,244 @@
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Customer Segmentation Dashboard",
+    page_icon="👥",
+    layout="wide"
+)
+
+# ---------------- TITLE ----------------
+st.title("👥 Customer Segmentation Dashboard")
+st.markdown(
+    "Customer segmentation, RFM intelligence, churn and ML insights dashboard"
+)
+
+# ---------------- BACK BUTTON ----------------
+if st.button("⬅ Back"):
+    st.switch_page("main_app.py")
+
+# ---------------- BASE DIRECTORY ----------------
+BASE_DIR = os.path.dirname(
+    os.path.dirname(
+        os.path.dirname(__file__)
+    )
+)
+
+# ---------------- FILE PATH ----------------
+segmentation_data_path = os.path.join(
+    BASE_DIR,
+    "data",
+    "processed",
+    "dashboard_master.csv"
+)
+
+# ---------------- LOAD DATA ----------------
+df = pd.read_csv(segmentation_data_path)
+st.write(df.columns)
+# ---------------- OVERVIEW METRICS ----------------
+st.subheader("📊 Business Overview")
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.metric(
+        "Total Customers",
+        df['CustomerID'].nunique()
+        if 'CustomerID' in df.columns
+        else len(df)
+    )
+
+with col2:
+    if 'Cluster' in df.columns:
+        st.metric(
+            "Customer Segments",
+            df['Cluster'].nunique()
+        )
+    else:
+        st.metric("Customer Segments", "N/A")
+
+with col3:
+    if 'Monetary' in df.columns:
+        st.metric(
+            "Average Revenue",
+            f"{df['Monetary'].mean():.2f}"
+        )
+    else:
+        st.metric("Average Revenue", "N/A")
+
+with col4:
+    if 'Frequency' in df.columns:
+        st.metric(
+            "Average Orders",
+            f"{df['Frequency'].mean():.2f}"
+        )
+    else:
+        st.metric("Average Orders", "N/A")
+
+# ---------------- CLUSTER DISTRIBUTION ----------------
+if 'Cluster' in df.columns:
+
+    st.subheader("📈 Customer Cluster Distribution")
+
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
+
+    cluster_counts = (
+        df['Cluster']
+        .value_counts()
+        .sort_index()
+    )
+
+    ax1.bar(
+        cluster_counts.index.astype(str),
+        cluster_counts.values
+    )
+
+    ax1.set_xlabel("Cluster")
+    ax1.set_ylabel("Customers")
+    ax1.set_title("Customer Cluster Distribution")
+
+    st.pyplot(fig1)
+
+# ---------------- RFM VISUALIZATION ----------------
+if (
+    'Frequency' in df.columns and
+    'Monetary' in df.columns and
+    'Cluster' in df.columns
+):
+
+    st.subheader("🎯 RFM Customer Segmentation")
+
+    fig2, ax2 = plt.subplots(figsize=(12, 6))
+
+    scatter = ax2.scatter(
+        df['Frequency'],
+        df['Monetary'],
+        c=df['Cluster']
+    )
+
+    ax2.set_xlabel("Frequency")
+    ax2.set_ylabel("Monetary")
+    ax2.set_title(
+        "Customer Segments based on Frequency and Monetary Value"
+    )
+
+    st.pyplot(fig2)
+
+# ---------------- RECENCY ANALYSIS ----------------
+if 'Recency' in df.columns:
+
+    st.subheader("⏳ Recency Distribution")
+
+    fig3, ax3 = plt.subplots(figsize=(10, 5))
+
+    ax3.hist(df['Recency'], bins=20)
+
+    ax3.set_xlabel("Recency")
+    ax3.set_ylabel("Customers")
+    ax3.set_title("Customer Recency Analysis")
+
+    st.pyplot(fig3)
+
+# ---------------- CHURN ANALYSIS ----------------
+if 'Churn' in df.columns:
+
+    st.subheader("⚠ Customer Churn Analysis")
+
+    churn_counts = df['Churn'].value_counts()
+
+    fig4, ax4 = plt.subplots(figsize=(6, 6))
+
+    ax4.pie(
+        churn_counts.values,
+        labels=churn_counts.index,
+        autopct='%1.1f%%'
+    )
+
+    ax4.set_title("Customer Churn Distribution")
+
+    st.pyplot(fig4)
+
+# ---------------- CLV ANALYSIS ----------------
+if 'CLV' in df.columns:
+
+    st.subheader("💰 Customer Lifetime Value Analysis")
+
+    fig5, ax5 = plt.subplots(figsize=(10, 5))
+
+    top_clv = df.sort_values(
+        by='CLV',
+        ascending=False
+    ).head(10)
+
+    ax5.bar(
+        top_clv['CustomerID'].astype(str),
+        top_clv['CLV']
+    )
+
+    ax5.set_xlabel("Customer ID")
+    ax5.set_ylabel("CLV")
+    ax5.set_title("Top 10 Customers by CLV")
+
+    st.pyplot(fig5)
+
+# ---------------- SEGMENT INSIGHTS ----------------
+if 'Cluster' in df.columns:
+
+    st.subheader("🧠 Segment Insights")
+
+    cluster_summary = df.groupby(
+        'Cluster'
+    ).mean(numeric_only=True)
+
+    st.dataframe(
+        cluster_summary,
+        width='stretch'
+    )
+
+# ---------------- TOP CUSTOMERS ----------------
+if 'Monetary' in df.columns:
+
+    st.subheader("🏆 High Value Customers")
+
+    top_customers = df.sort_values(
+        by='Monetary',
+        ascending=False
+    ).head(10)
+
+    st.dataframe(
+        top_customers,
+        width='stretch'
+    )
+
+# ---------------- ML MODEL OUTPUTS ----------------
+st.subheader("🤖 ML Model Outputs")
+
+ml_col1, ml_col2, ml_col3 = st.columns(3)
+
+with ml_col1:
+    if 'Cluster' in df.columns:
+        st.info("K-Means Segmentation Completed")
+
+with ml_col2:
+    if 'Churn' in df.columns:
+        st.info("Churn Prediction Analysis Available")
+
+with ml_col3:
+    if 'CLV' in df.columns:
+        st.info("Customer Lifetime Value Analysis Generated")
+
+# ---------------- DOWNLOAD BUTTON ----------------
+csv = df.to_csv(index=False)
+
+st.download_button(
+    label="⬇ Download Segmentation Results",
+    data=csv,
+    file_name="customer_segmentation_results.csv",
+    mime="text/csv"
+)
+
+# ---------------- SUCCESS MESSAGE ----------------
+st.success("✅ Customer Segmentation Dashboard Loaded Successfully!")
