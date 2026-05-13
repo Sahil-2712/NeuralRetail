@@ -51,5 +51,11 @@ results = pd.DataFrame({
     'Actual': y_test,
     'Predicted': predictions
 })
-
 print(results.head(10))
+# Save forecast results for dashboard
+results.to_csv(
+    "data/processed/forecast_results.csv",
+    index=False
+)
+
+print("Forecast results exported successfully!")
